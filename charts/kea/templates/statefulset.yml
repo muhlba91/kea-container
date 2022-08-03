@@ -1,0 +1,80 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "kea.fullname" . }}
+  labels:
+    {{- include "kea.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ include "kea.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "kea.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "kea.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kea.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}{{- if not (hasPrefix "@" (.Values.image.tag | default .Chart.AppVersion)) -}}:{{- end -}}{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            {{- if .Values.service.http.enabled }}
+            - name: http
+              containerPort: {{ .Values.service.http.containerPort }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.service.ddns.enabled }}
+            - name: ddns
+              containerPort: {{ .Values.service.ddns.containerPort }}
+              protocol: TCP
+            {{- end }}
+            - name: dhcp
+              containerPort: 67
+              protocol: UDP
+            - name: dhcp6
+              containerPort: 547
+              protocol: UDP
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml .Values.extraEnv | nindent 12 }}
+          {{- end }}
+          {{- with .Values.additionalVolumeMounts }}
+          volumeMounts:
+            {{ toYaml .Values.additionalVolumeMounts | nindent 12 }}
+          {{- end }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      hostNetwork: {{ .Values.hostNetwork }}
+      {{- with .Values.additionalVolumes }}
+      volumes:
+        {{ toYaml .Values.additionalVolumes | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

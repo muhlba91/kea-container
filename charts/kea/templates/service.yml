@@ -1,0 +1,34 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kea.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy }}
+  ports:
+    {{- if .Values.service.http.enabled }}
+    - port: {{ .Values.service.http.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- end }}
+    {{- if .Values.service.ddns.enabled }}
+    - port: {{ .Values.service.ddns.port }}
+      targetPort: ddns
+      protocol: TCP
+      name: ddns
+    {{- end }}
+    - port: 67
+      targetPort: dhcp
+      protocol: UDP
+      name: dhcp
+    - port: 547
+      targetPort: dhcp6
+      protocol: UDP
+      name: dhcp6
+  selector:
+    {{- include "kea.selectorLabels" . | nindent 6 }}

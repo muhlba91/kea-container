@@ -1,0 +1,22 @@
+---
+apiVersion: v2
+
+name: kea
+description: Kea DHCP Server
+type: application
+
+home: https://github.com/muhlba91/kea-container
+sources:
+  - https://github.com/muhlba91/kea-container
+keywords:
+  - kea
+  - dhcp
+
+maintainers:
+  - name: Daniel Muehlbachler-Pietrzykowski
+    email: daniel.muehlbachler@niftyside.io
+
+# NOTE: this value is updated by the release process
+appVersion: "@sha256:d5181bf6b4e6286e14361fce2865cb4cbb8cd7471801cba1d8f58a37c0f509ae"
+# NOTE: this value is updated by the release process
+version: 0.0.0

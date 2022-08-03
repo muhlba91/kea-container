@@ -1,0 +1,62 @@
+---
+image:
+  repository: quay.io/muhlba91/kea
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+extraEnv: {}
+  # ENV_VARIABLE: value
+
+# You must pass in your configuration through volume mounts to /etc/kea.
+additionalVolumes: []
+additionalVolumeMounts: []
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# Kea needs add least NET_ADMIN capabilities.
+securityContext:
+  capabilities:
+    add:
+      - NET_ADMIN
+
+dnsPolicy: ClusterFirstWithHostNet
+hostNetwork: true
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+service:
+  loadBalancerIP: ""
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  http:
+    enabled: false
+    containerPort: 8000
+    port: 8000
+  ddns:
+    enabled: false
+    containerPort: 53001
+    port: 53001
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

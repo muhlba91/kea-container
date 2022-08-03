@@ -1,6 +1,6 @@
 # Kea DHCP Container
 
-[![](https://img.shields.io/github/license/muhlba91/kea?style=for-the-badge)](LICENSE)
+[![](https://img.shields.io/github/license/muhlba91/kea-container?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/github/workflow/status/muhlba91/kea-container/Container?style=for-the-badge)](https://github.com/muhlba91/kea-container/actions)
 [![](https://img.shields.io/github/workflow/status/muhlba91/kea-container/Helm?style=for-the-badge)](https://github.com/muhlba91/kea-container/actions)
 [![](https://img.shields.io/github/release-date/muhlba91/kea-container?style=for-the-badge)](https://github.com/muhlba91/kea-container/releases)

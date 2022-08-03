@@ -111,6 +111,16 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           bodyFile: release-CHANGELOG.md
-          name: container/${{ env.TAG_NAME }}
-          tag: container/${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          tag: ${{ env.TAG_NAME }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  helm-release:
+    name: Process Helm Chart
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - container
+    uses: ./.github/workflows/helm_release.yml
+    with:
+      chart: kea
+      containerDigest: ${{ needs.container.outputs.digest }}
