@@ -1,0 +1,116 @@
+---
+name: Container
+
+on:
+  pull_request:
+    paths:
+      - 'container/**'
+  push:
+    branches:
+      - '*'
+    paths:
+      - 'container/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v2.0.0
+        with:
+          dockerfile: container/Dockerfile
+          config: container/.hadolint.yml
+
+  container:
+    runs-on: ubuntu-latest
+    name: Build Container Image
+    needs:
+      - lint
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
+    env:
+      TAG_NAME: latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config --local user.email "${{ github.action }}+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git fetch --tags
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to quay.io
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Define Versions
+        run: |
+          VERSION_FILE=`cat container/KEA_VERSION`
+          echo "KEA_VERSION=${VERSION_FILE%%*( )}" >> $GITHUB_ENV
+          VERSION_FILE=`cat container/ALPINE_VERSION`
+          echo "ALPINE_VERSION=${VERSION_FILE%%*( )}" >> $GITHUB_ENV
+
+      - name: Versioning and Changelog
+        if: github.ref == 'refs/heads/main'
+        working-directory: container
+        run: |
+          npx standard-version -i ../release-CHANGELOG.md \
+            --path ../container/** \
+            --skip.commit \
+            --skip.tag \
+            --skip.bump
+          npx standard-version \
+            --path ../container/**
+          TAG_NAME=`git describe --abbrev=0 --match "v*"`
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
+      - name: Build and Push Image
+        id: image
+        uses: docker/build-push-action@v3
+        with:
+          context: container
+          platforms: linux/amd64
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            quay.io/muhlba91/kea:${{ env.TAG_NAME }}
+            quay.io/muhlba91/kea:${{ github.sha }}
+          build-args: |
+            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
+            KEA_VERSION=${{ env.KEA_VERSION }}
+            CI_COMMIT_TIMESTAMP=${{ github.event.repository.updated_at }}
+            CI_COMMIT_SHA=${{ github.sha }}
+            CI_COMMIT_TAG=${{ env.TAG_NAME }}
+
+      - name: Push Git Tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git push --follow-tags
+
+      - name: GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: ncipollo/release-action@v1
+        with:
+          bodyFile: release-CHANGELOG.md
+          name: container/${{ env.TAG_NAME }}
+          tag: container/${{ env.TAG_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}

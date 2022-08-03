@@ -1,0 +1,3 @@
+#!/bin/sh
+exec 2>&1
+exec kea-dhcp6 -c /etc/kea/kea-dhcp6.conf

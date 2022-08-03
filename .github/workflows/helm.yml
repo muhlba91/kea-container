@@ -1,0 +1,66 @@
+---
+name: Helm
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+  push:
+    branches:
+      - '*'
+    paths:
+      - 'charts/**'
+
+jobs:
+  detect-changed-charts:
+    runs-on: ubuntu-latest
+    name: Detect Changed Charts
+    outputs:
+      kea: ${{ steps.changes.outputs.kea }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            kea:
+              - 'charts/kea/**'
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint Charts
+    needs:
+      - detect-changed-charts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: yokawasa/action-setup-kube-tools@v0.8.2
+        with:
+          setup-tools: |
+            helm
+
+      - name: Lint Kea
+        working-directory: charts
+        if: needs.detect-changed-charts.outputs.kea == 'true'
+        run: |
+          helm lint kea
+
+  kea:
+    name: Process Kea
+    needs:
+      - detect-changed-charts
+      - lint
+    if: github.ref == 'refs/heads/main' && needs.detect-changed-charts.outputs.kea == 'true'
+    uses: ./.github/workflows/helm_release.yml
+    with:
+      chart: kea

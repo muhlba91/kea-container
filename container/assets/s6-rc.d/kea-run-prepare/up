@@ -1,0 +1,3 @@
+if { mkdir -p /run/kea }
+if { chown nobody:nogroup /run/kea }
+chmod 02755 /run/kea
