@@ -1,6 +1,13 @@
 # Changelog
 
 
+### [1.1.3](https://github.com/muhlba91/kea-container/compare/chart/kea/v1.1.2...chart/kea/v1.1.3) (2022-08-04)
+
+
+### Bug Fixes
+
+* fix volume mounts ([95d4316](https://github.com/muhlba91/kea-container/commit/95d4316c56f84b2a50a62c2ff7e9e342ea007c8e))
+
 ### [1.1.2](https://github.com/muhlba91/kea-container/compare/chart/kea/v1.1.1...chart/kea/v1.1.2) (2022-08-04)
 
 
