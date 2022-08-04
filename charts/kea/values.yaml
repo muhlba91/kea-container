@@ -46,6 +46,7 @@ service:
   loadBalancerIP: ""
   type: ClusterIP
   ipFamilyPolicy: SingleStack
+  annotations: {}
   http:
     enabled: false
     containerPort: 8000
