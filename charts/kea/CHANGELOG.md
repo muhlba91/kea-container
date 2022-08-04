@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 1.1.0 (2022-08-04)
+
+
+### Features
+
+* add helm chart ([a0c8fb4](https://github.com/muhlba91/kea-container/commit/a0c8fb410edfceecae82e4feca419491e98cfffb))
+
+
+### Bug Fixes
+
+* fix service and chart releases ([2475337](https://github.com/muhlba91/kea-container/commit/2475337083bae94fa1cd4f279720e5dd7752e5fd))
+
 ### [1.1.1](https://github.com/muhlba91/kea-container/compare/chart/kea/v1.1.0...chart/kea/v1.1.1) (2022-08-04)
 
 ## 1.1.0 (2022-08-03)
