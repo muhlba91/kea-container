@@ -58,13 +58,13 @@ spec:
           {{- end }}
           {{- with .Values.additionalVolumeMounts }}
           volumeMounts:
-            {{ toYaml .Values.additionalVolumeMounts | nindent 12 }}
+            {{ toYaml . | nindent 12 }}
           {{- end }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       hostNetwork: {{ .Values.hostNetwork }}
       {{- with .Values.additionalVolumes }}
       volumes:
-        {{ toYaml .Values.additionalVolumes | nindent 8 }}
+        {{ toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
