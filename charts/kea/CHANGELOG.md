@@ -1,6 +1,13 @@
 # Changelog
 
 
+### [1.1.4](https://github.com/muhlba91/kea-container/compare/chart/kea/v1.1.3...chart/kea/v1.1.4) (2022-08-04)
+
+
+### Bug Fixes
+
+* fix chart app version ([1c2b145](https://github.com/muhlba91/kea-container/commit/1c2b1450cdc798c8733e3fa50582be4270cdf6b8))
+
 ### [1.1.3](https://github.com/muhlba91/kea-container/compare/chart/kea/v1.1.2...chart/kea/v1.1.3) (2022-08-04)
 
 
