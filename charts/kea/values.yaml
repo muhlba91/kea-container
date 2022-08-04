@@ -13,8 +13,9 @@ serviceAccount:
   annotations: {}
   name: ""
 
-extraEnv: {}
-  # ENV_VARIABLE: value
+extraEnv: []
+  # - name: VARIABLES
+  #   value: value
 
 # You must pass in your configuration through volume mounts to /etc/kea.
 additionalVolumes: []
