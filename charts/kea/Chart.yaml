@@ -17,6 +17,6 @@ maintainers:
     email: daniel.muehlbachler@niftyside.io
 
 # NOTE: this value is updated by the release process
-appVersion: "@sha256:d5181bf6b4e6286e14361fce2865cb4cbb8cd7471801cba1d8f58a37c0f509ae"
+appVersion: "@sha256:f770605566c507c1cc92eb93edc42e0a9b14cef0fe6d37618db5d6e7122395fc"
 # NOTE: this value is updated by the release process
 version: 1.1.3
