@@ -3,6 +3,25 @@ entries:
   kea:
   - apiVersion: v2
     appVersion: '@sha256:d5181bf6b4e6286e14361fce2865cb4cbb8cd7471801cba1d8f58a37c0f509ae'
+    created: "2022-08-04T11:25:50.474571358Z"
+    description: Kea DHCP Server
+    digest: 3e04ab1ff290fbd0797fc3a2f0c1bfbb32e32ab2a8794721ce6749dcc24bca4d
+    home: https://github.com/muhlba91/kea-container
+    keywords:
+    - kea
+    - dhcp
+    maintainers:
+    - email: daniel.muehlbachler@niftyside.io
+      name: Daniel Muehlbachler-Pietrzykowski
+    name: kea
+    sources:
+    - https://github.com/muhlba91/kea-container
+    type: application
+    urls:
+    - https://github.com/muhlba91/kea-container/releases/download/chart/kea/v1.1.2/kea-1.1.2.tgz
+    version: 1.1.2
+  - apiVersion: v2
+    appVersion: '@sha256:d5181bf6b4e6286e14361fce2865cb4cbb8cd7471801cba1d8f58a37c0f509ae'
     created: "2022-08-04T11:11:32.992175747Z"
     description: Kea DHCP Server
     digest: 9b228f539eeace55390a1a4b23f6b2d71f089d370c4983fa15e41246be116a26
@@ -39,4 +58,4 @@ entries:
     urls:
     - https://github.com/muhlba91/kea-container/releases/download/chart/kea/v1.1.0/kea-1.1.0.tgz
     version: 1.1.0
-generated: "2022-08-04T11:11:32.992189747Z"
+generated: "2022-08-04T11:25:50.474580758Z"
