@@ -12,30 +12,15 @@ on:
       - 'charts/**'
 
 jobs:
-  detect-changed-charts:
-    runs-on: ubuntu-latest
-    name: Detect Changed Charts
-    outputs:
-      kea: ${{ steps.changes.outputs.kea }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            kea:
-              - 'charts/kea/**'
-
   lint:
     runs-on: ubuntu-latest
     name: Lint Charts
-    needs:
-      - detect-changed-charts
+    strategy:
+      fail-fast: true
+      max-parallel: 4
+      matrix:
+        chart:
+          - kea
 
     steps:
       - name: Checkout repository
@@ -43,24 +28,60 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect Change
+        uses: dorny/paths-filter@v2
+        id: detect-change
+        with:
+          filters: |
+            changed:
+              - 'charts/${{ matrix.chart }}/**'
+
       - name: Setup Helm
+        if: steps.detect-change.outputs.changed == 'true'
         uses: yokawasa/action-setup-kube-tools@v0.8.2
         with:
           setup-tools: |
             helm
 
-      - name: Lint Kea
+      - name: Lint ${{ matrix.chart }}
         working-directory: charts
-        if: needs.detect-changed-charts.outputs.kea == 'true'
+        if: steps.detect-change.outputs.changed == 'true'
         run: |
-          helm lint kea
+          helm lint ${{ matrix.chart }}
 
-  kea:
-    name: Process Kea
+  release:
+    runs-on: ubuntu-latest
+    name: Release Charts
+    permissions:
+      contents: write
+    if: github.ref == 'refs/heads/main'
     needs:
-      - detect-changed-charts
       - lint
-    if: github.ref == 'refs/heads/main' && needs.detect-changed-charts.outputs.kea == 'true'
-    uses: ./.github/workflows/helm_release.yml
-    with:
-      chart: kea
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        chart:
+          - kea
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect Change
+        uses: dorny/paths-filter@v2
+        id: detect-change
+        with:
+          filters: |
+            changed:
+              - 'charts/${{ matrix.chart }}/**'
+
+      - name: Release ${{ matrix.chart }}
+        if: steps.detect-change.outputs.changed == 'true'
+        uses: ./.github/actions/helm-release
+        with:
+          chart: ${{ matrix.chart }}
+          token: ${{ secrets.GITHUB_TOKEN }}

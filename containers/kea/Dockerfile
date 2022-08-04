@@ -39,6 +39,7 @@ RUN apk add --no-cache \
   kea-static=${KEA_VERSION}
 
 COPY assets/s6-rc.d/ /etc/s6-overlay/s6-rc.d/
+COPY assets/log-to-stdout.sh /bin/log-to-stdout
 
 EXPOSE 67/udp
 EXPOSE 547/udp

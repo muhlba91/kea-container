@@ -4,40 +4,59 @@ name: Container
 on:
   pull_request:
     paths:
-      - 'container/**'
+      - 'containers/**'
   push:
     branches:
       - '*'
     paths:
-      - 'container/**'
+      - 'containers/**'
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     name: Lint
+    strategy:
+      fail-fast: true
+      max-parallel: 4
+      matrix:
+        container:
+          - kea
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect Change
+        uses: dorny/paths-filter@v2
+        id: detect-change
+        with:
+          filters: |
+            changed:
+              - 'containers/${{ matrix.container }}/**'
+              - 'containers/KEA_VERSION'
+              - 'containers/ALPINE_VERSION'
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v2.0.0
         with:
-          dockerfile: container/Dockerfile
-          config: container/.hadolint.yml
+          dockerfile: containers/${{ matrix.container }}/Dockerfile
+          config: containers/.hadolint.yml
 
   container:
     runs-on: ubuntu-latest
-    name: Build Container Image
+    name: Build (and Push) Container Image
+    permissions:
+      contents: write
     needs:
       - lint
-    outputs:
-      digest: ${{ steps.image.outputs.digest }}
-    env:
-      TAG_NAME: latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        container:
+          - kea
 
     steps:
       - name: Checkout repository
@@ -46,81 +65,41 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Git
-        run: |
-          git config --local user.email "${{ github.action }}+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git fetch --tags
-
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to quay.io
-        uses: docker/login-action@v2
+      - name: Detect Change
+        uses: dorny/paths-filter@v2
+        id: detect-change
         with:
-          registry: quay.io
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          filters: |
+            changed:
+              - 'containers/${{ matrix.container }}/**'
 
-      - name: Define Versions
-        run: |
-          VERSION_FILE=`cat container/KEA_VERSION`
-          echo "KEA_VERSION=${VERSION_FILE%%*( )}" >> $GITHUB_ENV
-          VERSION_FILE=`cat container/ALPINE_VERSION`
-          echo "ALPINE_VERSION=${VERSION_FILE%%*( )}" >> $GITHUB_ENV
-
-      - name: Versioning and Changelog
-        if: github.ref == 'refs/heads/main'
-        working-directory: container
-        run: |
-          npx standard-version -i ../release-CHANGELOG.md \
-            --path ../container/** \
-            --skip.commit \
-            --skip.tag \
-            --skip.bump
-          npx standard-version \
-            --path ../container/**
-          TAG_NAME=`git describe --abbrev=0 --match "v*"`
-          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
-
-      - name: Build and Push Image
+      - name: Build (and Push) ${{ matrix.container }}
         id: image
-        uses: docker/build-push-action@v3
+        if: steps.detect-change.outputs.changed == 'true'
+        uses: ./.github/actions/container
         with:
-          context: container
-          platforms: linux/amd64
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            quay.io/muhlba91/kea:${{ env.TAG_NAME }}
-            quay.io/muhlba91/kea:${{ github.sha }}
-          build-args: |
-            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
-            KEA_VERSION=${{ env.KEA_VERSION }}
-            CI_COMMIT_TIMESTAMP=${{ github.event.repository.updated_at }}
-            CI_COMMIT_SHA=${{ github.sha }}
-            CI_COMMIT_TAG=${{ env.TAG_NAME }}
-
-      - name: Push Git Tag
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git push --follow-tags
-
-      - name: GitHub Release
-        if: github.ref == 'refs/heads/main'
-        uses: ncipollo/release-action@v1
-        with:
-          bodyFile: release-CHANGELOG.md
-          name: ${{ env.TAG_NAME }}
-          tag: ${{ env.TAG_NAME }}
+          container: ${{ matrix.container }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          registryUsername: ${{ secrets.REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
 
-  helm-release:
-    name: Process Helm Chart
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - container
-    uses: ./.github/workflows/helm_release.yml
-    with:
-      chart: kea
-      containerDigest: ${{ needs.container.outputs.digest }}
+      - name: Check if a Chart Exists
+        id: check-chart
+        if: github.ref == 'refs/heads/main' && steps.detect-change.outputs.changed == 'true'
+        working-directory: charts
+        shell: bash
+        run: |
+          RELEASE_CHART="false"
+          if [ -d "${{ matrix.container }}" ]; then
+            echo "Marking chart ${{ matrix.container }} for release."
+            RELEASE_CHART="true"
+          fi
+          echo ::set-output name=exists::$(echo $RELEASE_CHART)
+
+      - name: Release Helm Chart ${{ matrix.container }}
+        if: github.ref == 'refs/heads/main' && steps.detect-change.outputs.changed == 'true' && steps.check-chart.outputs.exists == 'true'
+        uses: ./.github/actions/helm-release
+        with:
+          chart: ${{ matrix.container }}
+          containerDigest: ${{ steps.image.outputs.containerDigest }}
+          token: ${{ secrets.GITHUB_TOKEN }}

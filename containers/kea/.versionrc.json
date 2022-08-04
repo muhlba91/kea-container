@@ -1,0 +1,7 @@
+{
+  "releaseCommitMessageFormat": "chore(release): release kea container {{currentTag}} [skip ci] [container] [release]",
+  "tagPrefix": "container/kea/v",
+  "bumpFiles": [],
+  "packageFiles": [],
+  "header": "# Changelog\n\n"
+}
