@@ -93,6 +93,6 @@ runs:
       uses: ncipollo/release-action@v1
       with:
         bodyFile: release-CHANGELOG.md
-        name: container/${{ inputs.container }}-v${{ env.TAG_NAME }}
+        name: container/${{ inputs.container }}/v${{ env.TAG_NAME }}
         tag: container/${{ inputs.container }}/v${{ env.TAG_NAME }}
         token: ${{ inputs.token }}

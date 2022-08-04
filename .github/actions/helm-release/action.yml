@@ -80,14 +80,14 @@ runs:
           --owner "${owner}" \
           --git-repo "${repo}" \
           --commit "$(git rev-parse HEAD)" \
-          --release-name-template "chart/{{ .Name }}-v{{ .Version }}" \
+          --release-name-template "chart/{{ .Name }}/v{{ .Version }}" \
           --release-notes-file release-CHANGELOG.md \
           --package-path .cr-release-packages
 
         cr index \
           --owner "${owner}" \
           --git-repo "${repo}" \
-          --release-name-template "chart/{{ .Name }}-v{{ .Version }}" \
+          --release-name-template "chart/{{ .Name }}/v{{ .Version }}" \
           --push
       env:
         CR_TOKEN: ${{ inputs.token }}
